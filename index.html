@@ -26,7 +26,7 @@
         const ADMIN_USERNAME = "admin"; 
         const ADMIN_PASSWORD = "admin"; 
 
-        // ⚡ [সুপারফাস্ট রিডাইরেকশন লজিক] CSS বা বডি লোড হওয়ার আগেই এটি রান হবে
+        // ⚡ [ইনস্ট্যান্ট রিডাইরেকশন লজিক - জিরো লেটেন্সি]
         const urlParams = new URLSearchParams(window.location.search);
         const shortCode = urlParams.get('go');
         
@@ -34,11 +34,14 @@
             database.ref('links/' + shortCode).once('value').then((snapshot) => {
                 if (snapshot.exists()) {
                     const data = snapshot.val();
-                    // ক্লিক সংখ্যা কাউন্ট বাড়িয়েই সাথে সাথে উইন্ডো রিপ্লেস
+                    
+                    // ১. কোনো লেট না করে ইউজারকে সাথে সাথে রিডাইরেক্ট করুন
+                    window.location.replace(data.originalUrl);
+                    
+                    // ২. রিডাইরেক্ট হওয়ার পর ব্যাকগ্রাউন্ডে কাউন্টার আপডেট হতে থাকবে (ইউজারকে ওয়েট করাবে না)
                     database.ref('links/' + shortCode).update({
                         clicks: (data.clicks || 0) + 1
                     });
-                    window.location.replace(data.originalUrl);
                 } else {
                     alert("লিংকটি পাওয়া যায়নি!");
                     window.location.href = window.location.pathname;
@@ -57,7 +60,6 @@
 <body class="bg-slate-900 text-slate-100 font-sans min-h-screen">
 
     <script>
-        // ড্যাশবোর্ড মোড অন থাকলে লগইন স্ট্যাটাস চেক
         if (!shortCode) {
             window.addEventListener('DOMContentLoaded', () => {
                 checkLoginStatus();
@@ -87,6 +89,25 @@
                 alert("ভুল ইউজারনেম অথবা পাসওয়ার্ড!");
             }
         }
+
+        // 🕒 কতক্ষণ আগে লিংক তৈরি হয়েছে তা বের করার ফাংশন
+        function timeAgo(timestamp) {
+            if (!timestamp) return 'N/A';
+            const now = Date.now();
+            const seconds = Math.floor((now - timestamp) / 1000);
+            
+            if (seconds < 60) return 'Just now';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes}m ago`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours}h ago`;
+            const days = Math.floor(hours / 24);
+            if (days < 30) return `${days}d ago`;
+            
+            // ৩০ দিনের বেশি হলে ফিক্সড ডেট দেখাবে
+            const date = new Date(timestamp);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
     </script>
 
     <div id="loginScreen" class="fixed inset-0 items-center justify-center bg-slate-950 px-4">
@@ -111,7 +132,7 @@
         </div>
     </div>
 
-    <div id="mainDashboard" class="container mx-auto px-4 py-8 max-w-4xl">
+    <div id="mainDashboard" class="container mx-auto px-4 py-8 max-w-5xl">
         <header class="flex flex-col sm:flex-row justify-between items-center mb-10 gap-4">
             <div class="text-center sm:text-left">
                 <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-2">
@@ -144,6 +165,7 @@
                             <th class="pb-3 text-center w-12">#</th>
                             <th class="pb-3">শর্ট লিংক</th>
                             <th class="pb-3">টার্গেট লিংক (Original)</th>
+                            <th class="pb-3">তৈরির সময়</th>
                             <th class="pb-3 text-center">ক্লিক সংখ্যা</th>
                             <th class="pb-3 text-center">অ্যাকশন</th>
                         </tr>
@@ -176,34 +198,33 @@
             });
         }
 
-        // 🔄 নতুন মেথড: ডাটাবেজ থেকে লিংকগুলো নিয়ে ক্রিয়েশনের সময় অনুযায়ী উল্টো (Latest First) সাজানো
         function loadDashboardData() {
             database.ref('links').on('value', (snapshot) => {
                 const tableBody = document.getElementById('linksTable');
                 tableBody.innerHTML = '';
 
                 if (!snapshot.exists()) {
-                    tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-500">কোনো লিংক পাওয়া যায়নি!</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-500">কোনো লিংক পাওয়া যায়নি!</td></tr>`;
                     return;
                 }
 
-                // ডাটাগুলোকে একটি Array-তে নিয়ে আসা হচ্ছে সর্ট করার জন্য
                 let linksArray = [];
                 snapshot.forEach((childSnapshot) => {
                     linksArray.push({
                         code: childSnapshot.key,
                         originalUrl: childSnapshot.val().originalUrl,
                         clicks: childSnapshot.val().clicks || 0,
-                        createdAt: childSnapshot.val().createdAt || 0
+                        createdAt: childSnapshot.val().createdAt || null
                     });
                 });
 
-                // 🕐 নতুন লিংক সবার উপরে রাখার লজিক (Sort by createdAt descending)
+                // নতুন লিংক সবার উপরে (Latest First)
                 linksArray.sort((a, b) => b.createdAt - a.createdAt);
 
                 let index = 1;
                 linksArray.forEach((data) => {
                     const shortLink = `${baseUrl}?go=${data.code}`;
+                    const timeDisplay = timeAgo(data.createdAt); // টাইম হিসাব করা হচ্ছে
 
                     tableBody.innerHTML += `
                         <tr class="hover:bg-slate-700/30 transition">
@@ -213,6 +234,7 @@
                                 <button onclick="navigator.clipboard.writeText('${shortLink}'); alert('কপি হয়েছে!')" class="ml-2 text-slate-400 hover:text-white" title="Copy"><i class="fa-regular fa-copy"></i></button>
                             </td>
                             <td class="py-4 max-w-xs truncate text-slate-300" title="${data.originalUrl}">${data.originalUrl}</td>
+                            <td class="py-4 text-slate-400 text-xs font-medium"><i class="fa-regular fa-clock mr-1 text-slate-500"></i>${timeDisplay}</td>
                             <td class="py-4 text-center">
                                 <span class="bg-slate-900 px-3 py-1 rounded-full text-emerald-400 font-bold border border-emerald-500/20 shadow-inner">
                                     <i class="fa-solid fa-chart-simple text-xs mr-1"></i> ${data.clicks}
