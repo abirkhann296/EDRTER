@@ -4,16 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Premium URL Shortener & Analytics</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
-    <style>
-        #mainDashboard, #loginScreen { display: none; }
-    </style>
-</head>
-<body class="bg-slate-900 text-slate-100 font-sans min-h-screen">
 
     <script>
         // ⚠️ আপনার Firebase কনফিগারেশন এখানে বসান
@@ -33,7 +26,7 @@
         const ADMIN_USERNAME = "admin"; 
         const ADMIN_PASSWORD = "admin"; 
 
-        // রিডাইরেকশন লজিক
+        // ⚡ [সুপারফাস্ট রিডাইরেকশন লজিক] CSS বা বডি লোড হওয়ার আগেই এটি রান হবে
         const urlParams = new URLSearchParams(window.location.search);
         const shortCode = urlParams.get('go');
         
@@ -41,17 +34,31 @@
             database.ref('links/' + shortCode).once('value').then((snapshot) => {
                 if (snapshot.exists()) {
                     const data = snapshot.val();
+                    // ক্লিক সংখ্যা কাউন্ট বাড়িয়েই সাথে সাথে উইন্ডো রিপ্লেস
                     database.ref('links/' + shortCode).update({
                         clicks: (data.clicks || 0) + 1
-                    }).then(() => {
-                        window.location.replace(data.originalUrl);
                     });
+                    window.location.replace(data.originalUrl);
                 } else {
                     alert("লিংকটি পাওয়া যায়নি!");
                     window.location.href = window.location.pathname;
                 }
             });
-        } else {
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        #mainDashboard, #loginScreen { display: none; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen">
+
+    <script>
+        // ড্যাশবোর্ড মোড অন থাকলে লগইন স্ট্যাটাস চেক
+        if (!shortCode) {
             window.addEventListener('DOMContentLoaded', () => {
                 checkLoginStatus();
             });
@@ -169,38 +176,51 @@
             });
         }
 
+        // 🔄 নতুন মেথড: ডাটাবেজ থেকে লিংকগুলো নিয়ে ক্রিয়েশনের সময় অনুযায়ী উল্টো (Latest First) সাজানো
         function loadDashboardData() {
             database.ref('links').on('value', (snapshot) => {
                 const tableBody = document.getElementById('linksTable');
                 tableBody.innerHTML = '';
-                let index = 1;
 
                 if (!snapshot.exists()) {
                     tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-500">কোনো লিংক পাওয়া যায়নি!</td></tr>`;
                     return;
                 }
 
+                // ডাটাগুলোকে একটি Array-তে নিয়ে আসা হচ্ছে সর্ট করার জন্য
+                let linksArray = [];
                 snapshot.forEach((childSnapshot) => {
-                    const code = childSnapshot.key;
-                    const data = childSnapshot.val();
-                    const shortLink = `${baseUrl}?go=${code}`;
+                    linksArray.push({
+                        code: childSnapshot.key,
+                        originalUrl: childSnapshot.val().originalUrl,
+                        clicks: childSnapshot.val().clicks || 0,
+                        createdAt: childSnapshot.val().createdAt || 0
+                    });
+                });
+
+                // 🕐 নতুন লিংক সবার উপরে রাখার লজিক (Sort by createdAt descending)
+                linksArray.sort((a, b) => b.createdAt - a.createdAt);
+
+                let index = 1;
+                linksArray.forEach((data) => {
+                    const shortLink = `${baseUrl}?go=${data.code}`;
 
                     tableBody.innerHTML += `
                         <tr class="hover:bg-slate-700/30 transition">
                             <td class="py-4 text-center font-bold text-slate-500">${index++}</td>
                             <td class="py-4 font-semibold text-cyan-400">
-                                <a href="${shortLink}" target="_blank" class="hover:underline">${code}</a>
+                                <a href="${shortLink}" target="_blank" class="hover:underline">${data.code}</a>
                                 <button onclick="navigator.clipboard.writeText('${shortLink}'); alert('কপি হয়েছে!')" class="ml-2 text-slate-400 hover:text-white" title="Copy"><i class="fa-regular fa-copy"></i></button>
                             </td>
                             <td class="py-4 max-w-xs truncate text-slate-300" title="${data.originalUrl}">${data.originalUrl}</td>
                             <td class="py-4 text-center">
                                 <span class="bg-slate-900 px-3 py-1 rounded-full text-emerald-400 font-bold border border-emerald-500/20 shadow-inner">
-                                    <i class="fa-solid fa-chart-simple text-xs mr-1"></i> ${data.clicks || 0}
+                                    <i class="fa-solid fa-chart-simple text-xs mr-1"></i> ${data.clicks}
                                 </span>
                             </td>
                             <td class="py-4 text-center">
-                                <button onclick="editLink('${code}', '${data.originalUrl}')" class="bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white px-3 py-1 rounded-lg mr-1 transition"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="deleteLink('${code}')" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white px-3 py-1 rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
+                                <button onclick="editLink('${data.code}', '${data.originalUrl}')" class="bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white px-3 py-1 rounded-lg mr-1 transition"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="deleteLink('${data.code}')" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white px-3 py-1 rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
                             </td>
                         </tr>
                     `;
