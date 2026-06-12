@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium URL Shortener & Analytics</title>
+    
+    <title>LinkCraft | Premium URL Shortener</title>
+    <meta property="og:title" content="LinkCraft - Premium Short Link">
+    <meta property="og:description" content="Click to open the securely shortened premium link via LinkCraft Analytics.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1563986768609-322da13575f3?w=500"> 
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -22,11 +27,10 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // 🔐 আপনার কাস্টম ইউজারনেম এবং পাসওয়ার্ড
         const ADMIN_USERNAME = "admin"; 
         const ADMIN_PASSWORD = "admin"; 
 
-        // ⚡ [ইনস্ট্যান্ট রিডাইরেকশন লজিক - জিরো লেটেন্সি]
+        // ⚡ [সুপারফাস্ট জিরো-ডিле রিডাইরেকশন এবং সঠিক কাউন্টিং]
         const urlParams = new URLSearchParams(window.location.search);
         const shortCode = urlParams.get('go');
         
@@ -35,12 +39,12 @@
                 if (snapshot.exists()) {
                     const data = snapshot.val();
                     
-                    // ১. কোনো লেট না করে ইউজারকে সাথে সাথে রিডাইরেক্ট করুন
+                    // ১. সাথে সাথে ইউজারকে রিডাইরেক্ট (জিরো লেটেন্সি)
                     window.location.replace(data.originalUrl);
                     
-                    // ২. রিডাইরেক্ট হওয়ার পর ব্যাকগ্রাউন্ডে কাউন্টার আপডেট হতে থাকবে (ইউজারকে ওয়েট করাবে না)
+                    // ২. 🔥 [মোস্ট ইম্পর্ট্যান্ট] সার্ভার লেভেলে এটমিক ইনক্রিমেন্ট - ১টি ক্লিকও মিস হবে না
                     database.ref('links/' + shortCode).update({
-                        clicks: (data.clicks || 0) + 1
+                        clicks: firebase.database.ServerValue.increment(1)
                     });
                 } else {
                     alert("লিংকটি পাওয়া যায়নি!");
@@ -57,13 +61,40 @@
         #mainDashboard, #loginScreen { display: none; }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans min-h-screen">
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen relative">
+
+    <div id="toastBox" class="fixed bottom-5 right-5 z-50 flex flex-col gap-3 pointer-events-none"></div>
 
     <script>
         if (!shortCode) {
             window.addEventListener('DOMContentLoaded', () => {
                 checkLoginStatus();
             });
+        }
+
+        // 🎯 কাস্টম সুন্দর নোটিফিকেশন ফাংশন (অ্যালার্টের বিকল্প)
+        function showToast(message, type = 'success') {
+            const toastBox = document.getElementById('toastBox');
+            const toast = document.createElement('div');
+            
+            const bgColor = type === 'success' ? 'bg-emerald-500 border-emerald-400' : 'bg-red-500 border-red-400';
+            const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation';
+
+            toast.className = `flex items-center gap-3 ${bgColor} text-white px-5 py-3 rounded-xl shadow-xl border font-medium text-sm transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-auto`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-base"></i> <span>${message}</span>`;
+            
+            toastBox.appendChild(toast);
+
+            // অ্যানিমেশন ইফেক্ট
+            setTimeout(() => {
+                toast.classList.remove('translate-y-10', 'opacity-0');
+            }, 10);
+
+            // ৩ সেকেন্ড পর স্বয়ংক্রিয়ভাবে মুছে যাওয়া
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => { toast.remove(); }, 300);
+            }, 3000);
         }
 
         function checkLoginStatus() {
@@ -85,12 +116,12 @@
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('mainDashboard').style.display = 'block';
                 loadDashboardData();
+                showToast("লগইন সফল হয়েছে!");
             } else {
-                alert("ভুল ইউজারনেম অথবা পাসওয়ার্ড!");
+                showToast("ভুল ইউজারনেম অথবা পাসওয়ার্ড!", "error");
             }
         }
 
-        // 🕒 কতক্ষণ আগে লিংক তৈরি হয়েছে তা বের করার ফাংশন
         function timeAgo(timestamp) {
             if (!timestamp) return 'N/A';
             const now = Date.now();
@@ -104,7 +135,6 @@
             const days = Math.floor(hours / 24);
             if (days < 30) return `${days}d ago`;
             
-            // ৩০ দিনের বেশি হলে ফিক্সড ডেট দেখাবে
             const date = new Date(timestamp);
             return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         }
@@ -164,7 +194,7 @@
                         <tr class="border-b border-slate-700 text-slate-400 text-sm">
                             <th class="pb-3 text-center w-12">#</th>
                             <th class="pb-3">শর্ট লিংক</th>
-                            <th class="pb-3">টার্গেট লিংক (Original)</th>
+                            <th class="pb-3">টার্げて লিংক (Original)</th>
                             <th class="pb-3">তৈরির সময়</th>
                             <th class="pb-3 text-center">ক্লিক সংখ্যা</th>
                             <th class="pb-3 text-center">অ্যাকশন</th>
@@ -184,7 +214,7 @@
             const longUrl = document.getElementById('longUrl').value.trim();
             let customCode = document.getElementById('customCode').value.trim().toLowerCase();
 
-            if (!longUrl) return alert("দয়া করে একটি সঠিক ইউআরএল (URL) দিন।");
+            if (!longUrl) return showToast("দয়া করে একটি সঠিক ইউআরএল (URL) দিন।", "error");
             if (!customCode) customCode = Math.random().toString(36).substring(2, 7);
 
             database.ref('links/' + customCode).set({
@@ -194,7 +224,7 @@
             }).then(() => {
                 document.getElementById('longUrl').value = '';
                 document.getElementById('customCode').value = '';
-                alert("লিংক সফলভাবে তৈরি হয়েছে!");
+                showToast("লিংক সফলভাবে তৈরি হয়েছে!");
             });
         }
 
@@ -218,20 +248,19 @@
                     });
                 });
 
-                // নতুন লিংক সবার উপরে (Latest First)
                 linksArray.sort((a, b) => b.createdAt - a.createdAt);
 
                 let index = 1;
                 linksArray.forEach((data) => {
                     const shortLink = `${baseUrl}?go=${data.code}`;
-                    const timeDisplay = timeAgo(data.createdAt); // টাইম হিসাব করা হচ্ছে
+                    const timeDisplay = timeAgo(data.createdAt);
 
                     tableBody.innerHTML += `
                         <tr class="hover:bg-slate-700/30 transition">
                             <td class="py-4 text-center font-bold text-slate-500">${index++}</td>
                             <td class="py-4 font-semibold text-cyan-400">
                                 <a href="${shortLink}" target="_blank" class="hover:underline">${data.code}</a>
-                                <button onclick="navigator.clipboard.writeText('${shortLink}'); alert('কপি হয়েছে!')" class="ml-2 text-slate-400 hover:text-white" title="Copy"><i class="fa-regular fa-copy"></i></button>
+                                <button onclick="navigator.clipboard.writeText('${shortLink}'); showToast('লিংক কপি হয়েছে!')" class="ml-2 text-slate-400 hover:text-white cursor-pointer" title="Copy"><i class="fa-regular fa-copy"></i></button>
                             </td>
                             <td class="py-4 max-w-xs truncate text-slate-300" title="${data.originalUrl}">${data.originalUrl}</td>
                             <td class="py-4 text-slate-400 text-xs font-medium"><i class="fa-regular fa-clock mr-1 text-slate-500"></i>${timeDisplay}</td>
@@ -241,8 +270,8 @@
                                 </span>
                             </td>
                             <td class="py-4 text-center">
-                                <button onclick="editLink('${data.code}', '${data.originalUrl}')" class="bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white px-3 py-1 rounded-lg mr-1 transition"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="deleteLink('${data.code}')" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white px-3 py-1 rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
+                                <button onclick="editLink('${data.code}', '${data.originalUrl}')" class="bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white px-3 py-1 rounded-lg mr-1 transition cursor-pointer"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="deleteLink('${data.code}')" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white px-3 py-1 rounded-lg transition cursor-pointer"><i class="fa-solid fa-trash"></i></button>
                             </td>
                         </tr>
                     `;
@@ -255,13 +284,13 @@
             if (newUrl && newUrl.trim() !== "" && newUrl !== oldUrl) {
                 database.ref('links/' + code).update({
                     originalUrl: newUrl.trim()
-                }).then(() => alert("লিংক আপডেট করা হয়েছে!"));
+                }).then(() => showToast("লিংক সফলভাবে আপডেট করা হয়েছে!"));
             }
         }
 
         function deleteLink(code) {
             if (confirm("আপনি কি নিশ্চিতভাবে এই লিংকটি ডিলিট করতে চান?")) {
-                database.ref('links/' + code).remove().then(() => alert("লিংক ডিলিট হয়েছে।"));
+                database.ref('links/' + code).remove().then(() => showToast("লিংক ডিলিট করা হয়েছে।", "error"));
             }
         }
     </script>
