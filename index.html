@@ -30,26 +30,31 @@
         const ADMIN_USERNAME = "admin"; 
         const ADMIN_PASSWORD = "admin"; 
 
-        // ⚡ [সুপারফাস্ট জিরো-ডিле রিডাইরেকশন এবং সঠিক কাউন্টিং]
+        // ⚡ [সুপারফাস্ট এবং ১০০% নিখুঁত রিডাইরেকশন ও ট্রানজেকশন লজিক]
         const urlParams = new URLSearchParams(window.location.search);
         const shortCode = urlParams.get('go');
         
         if (shortCode) {
-            database.ref('links/' + shortCode).once('value').then((snapshot) => {
+            const linkRef = database.ref('links/' + shortCode);
+            
+            linkRef.once('value').then((snapshot) => {
                 if (snapshot.exists()) {
-                    const data = snapshot.val();
+                    const originalUrl = snapshot.val().originalUrl;
                     
-                    // ১. সাথে সাথে ইউজারকে রিডাইরেক্ট (জিরো লেটেন্সি)
-                    window.location.replace(data.originalUrl);
-                    
-                    // ২. 🔥 [মোস্ট ইম্পর্ট্যান্ট] সার্ভার লেভেলে এটমিক ইনক্রিমেন্ট - ১টি ক্লিকও মিস হবে না
-                    database.ref('links/' + shortCode).update({
-                        clicks: firebase.database.ServerValue.increment(1)
+                    // 🔥 ট্রানজেকশন ব্যবহার করা হয়েছে যাতে একসাথে হাজারটা ক্লিক আসলেও মিস না হয়
+                    linkRef.child('clicks').transaction((currentClicks) => {
+                        return (currentClicks || 0) + 1;
+                    }, (error, committed, snapshot) => {
+                        // ডাটাবেজে কাউন্ট সফলভাবে বসামাত্রই (কোনো লেট না করে) রিডাইরেক্ট হবে
+                        window.location.replace(originalUrl);
                     });
                 } else {
                     alert("লিংকটি পাওয়া যায়নি!");
                     window.location.href = window.location.pathname;
                 }
+            }).catch(() => {
+                // কোনো কারণে ডাটাবেজ স্লো থাকলেও যেন ইউজার আটকে না থাকে
+                window.location.replace(window.location.pathname);
             });
         }
     </script>
@@ -72,7 +77,6 @@
             });
         }
 
-        // 🎯 কাস্টম সুন্দর নোটিফিকেশন ফাংশন (অ্যালার্টের বিকল্প)
         function showToast(message, type = 'success') {
             const toastBox = document.getElementById('toastBox');
             const toast = document.createElement('div');
@@ -85,12 +89,10 @@
             
             toastBox.appendChild(toast);
 
-            // অ্যানিমেশন ইফেক্ট
             setTimeout(() => {
                 toast.classList.remove('translate-y-10', 'opacity-0');
             }, 10);
 
-            // ৩ সেকেন্ড পর স্বয়ংক্রিয়ভাবে মুছে যাওয়া
             setTimeout(() => {
                 toast.classList.add('opacity-0', 'translate-y-2');
                 setTimeout(() => { toast.remove(); }, 300);
@@ -194,7 +196,7 @@
                         <tr class="border-b border-slate-700 text-slate-400 text-sm">
                             <th class="pb-3 text-center w-12">#</th>
                             <th class="pb-3">শর্ট লিংক</th>
-                            <th class="pb-3">টার্げて লিংক (Original)</th>
+                            <th class="pb-3">টার্গেট লিংক (Original)</th>
                             <th class="pb-3">তৈরির সময়</th>
                             <th class="pb-3 text-center">ক্লিক সংখ্যা</th>
                             <th class="pb-3 text-center">অ্যাকশন</th>
