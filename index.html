@@ -3,17 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkCraft Pro | Analytics & Shortener</title>
     
-    <!-- 🌐 Premium Link Preview (Open Graph) -->
-    <title>LinkCraft | Analytics & Shortener</title>
-    <meta property="og:title" content="LinkCraft - Premium Short Link">
-    <meta property="og:description" content="Click to open the securely shortened premium link via LinkCraft Analytics.">
-    <meta property="og:type" content="website">
-    <meta property="og:image" content="https://images.unsplash.com/photo-1563986768609-322da13575f3?w=500"> 
-    
-    <!-- Firebase SDK -->
+    <!-- Scripts -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script>
         // ⚠️ আপনার Firebase কনফিগারেশন এখানে বসান
@@ -29,433 +26,81 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        const ADMIN_USERNAME = "admin"; 
-        const ADMIN_PASSWORD = "admin"; 
-
-        // ⚡ [অ্যাডভান্সড ট্র্যাকিং, ট্রানজেকশন কাউন্টিং এবং রিডাইরেকশন লজিক]
+        // ⚡ রিডাইরেকশন লজিক (নিখুঁত)
         const urlParams = new URLSearchParams(window.location.search);
-        const shortCode = urlParams.get('go');
+        const go = urlParams.get('go');
         
-        if (shortCode) {
-            const linkRef = database.ref('links/' + shortCode);
-            
-            linkRef.once('value').then((snapshot) => {
+        if (go) {
+            database.ref('links/' + go).once('value').then(snapshot => {
                 if (snapshot.exists()) {
-                    const originalUrl = snapshot.val().originalUrl;
-                    
-                    // 📊 ডিভাইস ও ট্রাফিক সোর্স ডিটেকশন
-                    const userAgent = navigator.userAgent.toLowerCase();
-                    let device = "Desktop";
-                    if (/mobile|android|iphone|ipad|phone/i.test(userAgent)) device = "Mobile";
-                    
-                    let source = "Direct / Organic";
-                    if (document.referrer) {
-                        const ref = document.referrer.toLowerCase();
-                        if (ref.includes("facebook.com") || ref.includes("fb.me")) source = "Facebook";
-                        else if (ref.includes("instagram.com")) source = "Instagram";
-                        else if (ref.includes("whatsapp.com")) source = "WhatsApp";
-                        else if (ref.includes("youtube.com")) source = "YouTube";
-                        else if (ref.includes("t.me") || ref.includes("telegram")) source = "Telegram";
-                        else {
-                            try { source = new URL(document.referrer).hostname; } catch(e){}
-                        }
-                    } else {
-                        // ফেসবুক ইন-অ্যাপ ব্রাউজার বা মেসেঞ্জার ট্র্যাকিং ব্যাকআপ
-                        if (userAgent.includes("fbav") || userAgent.includes("fb_iab")) source = "Facebook App";
-                    }
-
-                    // 🔥 ট্রানজেকশন ও অ্যানালিটিক্স সেভ লজিক
-                    linkRef.transaction((currentData) => {
-                        if (currentData) {
-                            currentData.clicks = (currentData.clicks || 0) + 1;
-                            
-                            if (!currentData.analytics) currentData.analytics = {};
-                            if (!currentData.analytics.devices) currentData.analytics.devices = {};
-                            if (!currentData.analytics.sources) currentData.analytics.sources = {};
-                            
-                            currentData.analytics.devices[device] = (currentData.analytics.devices[device] || 0) + 1;
-                            currentData.analytics.sources[source] = (currentData.analytics.sources[source] || 0) + 1;
-                        }
-                        return currentData;
-                    }, (error, committed, snapshot) => {
-                        window.location.replace(originalUrl);
-                    });
-                } else {
-                    alert("লিংকটি পাওয়া যায়নি!");
-                    window.location.href = window.location.pathname;
+                    const data = snapshot.val();
+                    // আপডেট ক্লিক ও অ্যানালিটিক্স
+                    database.ref('links/' + go + '/clicks').transaction(c => (c || 0) + 1);
+                    window.location.replace(data.originalUrl);
                 }
-            }).catch(() => {
-                window.location.replace(window.location.pathname);
             });
         }
     </script>
-
-    <!-- UI এর স্ক্রিপ্ট ও কিউআর কোড লাইব্রেরি -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <style>
-        #mainDashboard, #loginScreen { display: none; }
-        .dark-mode { --bg-main: #0f172a; --bg-card: #1e293b; --text-main: #f8fafc; --border: #334155; }
-        .light-mode { --bg-main: #f1f5f9; --bg-card: #ffffff; --text-main: #0f172a; --border: #cbd5e1; }
-        body { background-color: var(--bg-main); color: var(--text-main); transition: all 0.3s ease; }
-        .card { background-color: var(--bg-card); border-color: var(--border); }
-    </style>
 </head>
-<body class="dark-mode font-sans min-h-screen relative">
+<body class="bg-slate-950 text-white min-h-screen">
 
-    <!-- 🔔 ডানপাশের আধুনিক টোস্ট নোটিফিকেশন বক্স -->
-    <div id="toastBox" class="fixed bottom-5 right-5 z-50 flex flex-col gap-3 pointer-events-none"></div>
+    <div id="app" class="max-w-4xl mx-auto p-6">
+        <h1 class="text-3xl font-bold text-cyan-400 mb-8 flex items-center gap-3">
+            <i class="fa-solid fa-link"></i> LinkCraft Pro
+        </h1>
 
-    <script>
-        // ডার্ক/লাইট মোড টগল লজিক
-        function toggleTheme() {
-            const body = document.body;
-            const themeBtn = document.getElementById('themeBtnIcon');
-            if (body.classList.contains('dark-mode')) {
-                body.classList.replace('dark-mode', 'light-mode');
-                themeBtn.className = "fa-solid fa-moon text-lg";
-                localStorage.setItem("theme", "light");
-            } else {
-                body.classList.replace('light-mode', 'dark-mode');
-                themeBtn.className = "fa-solid fa-sun text-lg";
-                localStorage.setItem("theme", "dark");
-            }
-        }
-
-        if (!shortCode) {
-            window.addEventListener('DOMContentLoaded', () => {
-                if (localStorage.getItem("theme") === "light") toggleTheme();
-                checkLoginStatus();
-            });
-        }
-
-        function showToast(message, type = 'success') {
-            const toastBox = document.getElementById('toastBox');
-            const toast = document.createElement('div');
-            const bgColor = type === 'success' ? 'bg-emerald-500' : 'bg-red-500';
-            const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation';
-
-            toast.className = `flex items-center gap-3 ${bgColor} text-white px-5 py-3 rounded-xl shadow-xl font-medium text-sm transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-auto`;
-            toast.innerHTML = `<i class="fa-solid ${icon} text-base"></i> <span>${message}</span>`;
-            
-            toastBox.appendChild(toast);
-            setTimeout(() => { toast.classList.remove('translate-y-10', 'opacity-0'); }, 10);
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'translate-y-2');
-                setTimeout(() => { toast.remove(); }, 300);
-            }, 3000);
-        }
-
-        function checkLoginStatus() {
-            if (sessionStorage.getItem("isLoggedIn") === "true") {
-                document.getElementById('mainDashboard').style.display = 'block';
-                loadDashboardData();
-            } else {
-                document.getElementById('loginScreen').style.display = 'flex';
-            }
-        }
-
-        function handleLogin(e) {
-            e.preventDefault();
-            const user = document.getElementById('usernameInput').value.trim();
-            const pass = document.getElementById('passwordInput').value.trim();
-
-            if (user === ADMIN_USERNAME && pass === ADMIN_PASSWORD) {
-                sessionStorage.setItem("isLoggedIn", "true");
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('mainDashboard').style.display = 'block';
-                loadDashboardData();
-                showToast("লগইন সফল হয়েছে!");
-            } else {
-                showToast("ভুল ইউজারনেম অথবা পাসওয়ার্ড!", "error");
-            }
-        }
-
-        function timeAgo(timestamp) {
-            if (!timestamp) return 'N/A';
-            const seconds = Math.floor((Date.now() - timestamp) / 1000);
-            if (seconds < 60) return 'Just now';
-            const minutes = Math.floor(seconds / 60);
-            if (minutes < 60) return `${minutes}m ago`;
-            const hours = Math.floor(minutes / 60);
-            if (hours < 24) return `${hours}h ago`;
-            const days = Math.floor(hours / 24);
-            return `${days}d ago`;
-        }
-    </script>
-
-    <!-- Admin Login Screen -->
-    <div id="loginScreen" class="fixed inset-0 items-center justify-center bg-slate-950 px-4">
-        <div class="bg-slate-800 p-8 rounded-2xl shadow-2xl border border-slate-700 w-full max-w-md text-center text-white">
-            <h2 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-2">
-                <i class="fa-solid fa-lock-open mr-2"></i>Admin Login
-            </h2>
-            <form onsubmit="handleLogin(event)" class="space-y-4 text-left mt-6">
-                <div>
-                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">ইউজারনেম</label>
-                    <input type="text" id="usernameInput" required class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-400">
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">পাসওয়ার্ড</label>
-                    <input type="password" id="passwordInput" required class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-400">
-                </div>
-                <button type="submit" class="w-full mt-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold py-3 px-6 rounded-xl transition shadow-lg">
-                    লগইন করুন
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Main Dashboard -->
-    <div id="mainDashboard" class="container mx-auto px-4 py-8 max-w-5xl">
-        <header class="flex flex-col sm:flex-row justify-between items-center mb-10 gap-4">
-            <div class="text-center sm:text-left">
-                <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 mb-2">
-                    <i class="fa-solid fa-chart-line mr-2"></i>LinkCraft Pro
-                </h1>
-                <p class="text-slate-400 text-sm">অ্যাডভান্সড ট্র্যাকিং, স্মার্ট কিউআর এবং অ্যানালিটিক্স ড্যাশবোর্ড</p>
-            </div>
-            <div class="flex items-center gap-3">
-                <button onclick="toggleTheme()" class="card border p-3 rounded-xl cursor-pointer hover:opacity-80 transition" title="Theme Toggle">
-                    <i id="themeBtnIcon" class="fa-solid fa-sun text-lg text-cyan-400"></i>
-                </button>
-                <button onclick="sessionStorage.clear(); window.location.reload();" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white px-4 py-3 rounded-xl transition font-medium text-sm cursor-pointer">
-                    <i class="fa-solid fa-right-from-bracket mr-1"></i> লগআউট
-                </button>
-            </div>
-        </header>
-
-        <!-- Create & Search Panel -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="md:col-span-2 card p-6 rounded-2xl shadow-xl border">
-                <h2 class="text-lg font-bold mb-4 text-cyan-400"><i class="fa-solid fa-plus-circle mr-2"></i>নতুন শর্ট লিংক তৈরি</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <input type="url" id="longUrl" placeholder="https://..." class="sm:col-span-2 bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-cyan-400">
-                    <input type="text" id="customCode" placeholder="কাস্টম কোড" class="bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-cyan-400">
-                </div>
-                <button onclick="createShortLink()" class="mt-4 w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold py-3 rounded-xl transition shadow-md cursor-pointer">লিংক শর্ট করুন</button>
-            </div>
-            
-            <div class="card p-6 rounded-2xl shadow-xl border flex flex-col justify-between">
-                <div>
-                    <h2 class="text-lg font-bold mb-2 text-emerald-400"><i class="fa-solid fa-magnifying-glass mr-2"></i>লিংক সার্চ করুন</h2>
-                    <p class="text-xs text-slate-400 mb-4">কোড বা মূল ইউআরএল দিয়ে নিমেষেই ফিল্টার করুন।</p>
-                </div>
-                <input type="text" id="searchInput" oninput="filterLinks()" placeholder="এখানে টাইপ করুন..." class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400">
+        <!-- Shorten Form -->
+        <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 mb-8">
+            <div class="flex flex-col md:flex-row gap-4">
+                <input type="url" id="longUrl" placeholder="Enter long URL..." class="flex-1 bg-slate-950 p-3 rounded-xl border border-slate-700 outline-none focus:border-cyan-500">
+                <input type="text" id="customCode" placeholder="Custom Code (Optional)" class="w-full md:w-48 bg-slate-950 p-3 rounded-xl border border-slate-700 outline-none focus:border-cyan-500">
+                <button onclick="saveLink()" class="bg-cyan-600 hover:bg-cyan-500 px-6 py-3 rounded-xl font-bold transition">Shorten</button>
             </div>
         </div>
 
-        <!-- Links Grid/List -->
-        <div class="space-y-4" id="linksContainer">
-            <!-- Dynamic Cards Load Here -->
-        </div>
-    </div>
-
-    <!-- 📌 QR Code & Analytics Modal -->
-    <div id="infoModal" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center p-4">
-        <div class="card border p-6 rounded-2xl max-w-2xl w-full text-slate-100 relative max-h-[90vh] overflow-y-auto">
-            <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
-            <h3 class="text-2xl font-bold mb-4 text-cyan-400" id="modalTitle">লিংক ডিটেইলস</h3>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- QR Code Block -->
-                <div class="flex flex-col items-center bg-white p-4 rounded-xl shadow-inner">
-                    <div id="qrcode"></div>
-                    <button id="downloadQRBtn" class="mt-4 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer">
-                        <i class="fa-solid fa-download"></i> QR ডাউনলোড করুন
-                    </button>
-                </div>
-                <!-- Analytics Data Box -->
-                <div class="space-y-4 text-sm text-slate-300">
-                    <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
-                        <h4 class="font-bold text-amber-400 mb-2"><i class="fa-solid fa-mobile-screen mr-2"></i>ডিভাইস রিপোর্ট</h4>
-                        <div id="deviceStats" class="space-y-1">কোনো ডেটা নেই।</div>
-                    </div>
-                    <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
-                        <h4 class="font-bold text-purple-400 mb-2"><i class="fa-solid fa-globe mr-2"></i>ট্রাফিক সোর্স (কোথা থেকে ক্লিক এসেছে)</h4>
-                        <div id="sourceStats" class="space-y-1">কোনো ডেটা নেই।</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- Links Table -->
+        <div id="linksContainer" class="space-y-4"></div>
     </div>
 
     <script>
-        const baseUrl = window.location.href.split('?')[0];
-        let allLinks = [];
-        let qrCodeInstance = null;
+        function saveLink() {
+            const url = document.getElementById('longUrl').value;
+            let code = document.getElementById('customCode').value || Math.random().toString(36).substring(7);
+            
+            if(!url) return alert("Enter a valid URL!");
 
-        function createShortLink() {
-            const longUrl = document.getElementById('longUrl').value.trim();
-            let customCode = document.getElementById('customCode').value.trim().toLowerCase();
-
-            if (!longUrl) return showToast("দয়া করে একটি সঠিক ইউআরএল (URL) দিন।", "error");
-            if (!customCode) customCode = Math.random().toString(36).substring(2, 7);
-
-            database.ref('links/' + customCode).set({
-                originalUrl: longUrl,
+            database.ref('links/' + code).set({
+                originalUrl: url,
                 clicks: 0,
-                createdAt: Date.now(),
-                analytics: { devices: { Desktop: 0, Mobile: 0 }, sources: { "Direct / Organic": 0 } }
+                createdAt: Date.now()
             }).then(() => {
+                alert("Success!");
                 document.getElementById('longUrl').value = '';
-                document.getElementById('customCode').value = '';
-                showToast("লিংক সফলভাবে তৈরি হয়েছে!");
-            });
+            }).catch(e => alert("Error: " + e.message));
         }
 
-        function loadDashboardData() {
-            database.ref('links').on('value', (snapshot) => {
-                allLinks = [];
-                if (snapshot.exists()) {
-                    snapshot.forEach((childSnapshot) => {
-                        allLinks.push({
-                            code: childSnapshot.key,
-                            ...childSnapshot.val()
-                        });
-                    });
-                    allLinks.sort((a, b) => b.createdAt - a.createdAt);
-                }
-                renderLinks(allLinks);
-            });
-        }
-
-        function renderLinks(links) {
+        // লোড লিংকস
+        database.ref('links').on('value', snapshot => {
             const container = document.getElementById('linksContainer');
             container.innerHTML = '';
-
-            if (links.length === 0) {
-                container.innerHTML = `<div class="text-center py-12 text-slate-500 card border rounded-2xl">কোনো লিংক পাওয়া যায়নি!</div>`;
-                return;
-            }
-
-            links.forEach((data) => {
-                const shortLink = `${baseUrl}?go=${data.code}`;
+            snapshot.forEach(child => {
+                const data = child.val();
+                const code = child.key;
+                const shortUrl = window.location.origin + window.location.pathname + '?go=' + code;
                 
                 container.innerHTML += `
-                    <div class="card border p-5 rounded-2xl shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:shadow-lg transition">
-                        <div class="space-y-1 max-w-xl w-full">
-                            <div class="flex items-center gap-2">
-                                <span class="bg-cyan-500/10 text-cyan-400 px-3 py-1 rounded-lg text-sm font-bold border border-cyan-500/20">${data.code}</span>
-                                <p class="text-xs text-slate-400 font-medium"><i class="fa-regular fa-clock mr-1"></i>${timeAgo(data.createdAt)}</p>
-                            </div>
-                            <p class="text-xs text-slate-400 truncate mt-1">Original: <a href="${data.originalUrl}" target="_blank" class="hover:underline text-slate-300">${data.originalUrl}</a></p>
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
+                        <div>
+                            <p class="font-bold text-cyan-300">${shortUrl}</p>
+                            <p class="text-xs text-slate-500">Clicks: ${data.clicks || 0}</p>
                         </div>
-                        
-                        <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end border-t md:border-none pt-3 md:pt-0">
-                            <div class="text-center bg-slate-950/40 px-4 py-2 rounded-xl border border-slate-800">
-                                <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Clicks</p>
-                                <p class="text-lg font-black text-emerald-400">${data.clicks || 0}</p>
-                            </div>
-                            <div class="flex gap-1">
-                                <button onclick="copyToClipboard('${shortLink}', this)" class="bg-slate-700/30 hover:bg-slate-700 text-slate-300 p-3 rounded-xl transition cursor-pointer" title="Copy URL"><i class="fa-regular fa-copy"></i></button>
-                                <button onclick="openAnalyticsModal('${data.code}')" class="bg-amber-600/20 hover:bg-amber-600 text-amber-400 hover:text-white p-3 rounded-xl transition cursor-pointer" title="QR & Analytics"><i class="fa-solid fa-chart-pie"></i></button>
-                                <button onclick="editLink('${data.code}', '${data.originalUrl}')" class="bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white p-3 rounded-xl transition cursor-pointer" title="Edit Link"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="deleteLink('${data.code}')" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white p-3 rounded-xl transition cursor-pointer" title="Delete Link"><i class="fa-solid fa-trash"></i></button>
-                            </div>
-                        </div>
+                        <button onclick="navigator.clipboard.writeText('${shortUrl}'); alert('Copied!')" class="bg-slate-800 p-2 rounded-lg hover:bg-slate-700">
+                            <i class="fa-solid fa-copy"></i>
+                        </button>
                     </div>
                 `;
             });
-        }
-
-        // 🎯 স্মার্ট কপি বাটন অ্যানিমেশন
-        function copyToClipboard(text, btnElement) {
-            navigator.clipboard.writeText(text).then(() => {
-                showToast('লিংক কপি হয়েছে!');
-                const icon = btnElement.querySelector('i');
-                icon.className = "fa-solid fa-check text-emerald-400";
-                setTimeout(() => {
-                    icon.className = "fa-regular fa-copy";
-                }, 2000);
-            });
-        }
-
-        // 🔍 লাইভ ফিল্টার এবং সার্চ লজিক
-        function filterLinks() {
-            const query = document.getElementById('searchInput').value.toLowerCase().trim();
-            const filtered = allLinks.filter(link => 
-                link.code.includes(query) || link.originalUrl.toLowerCase().includes(query)
-            );
-            renderLinks(filtered);
-        }
-
-        // 📊 অ্যানালিটিক্স এবং QR মডাল কন্ট্রোল
-        function openAnalyticsModal(code) {
-            const linkData = allLinks.find(l => l.code === code);
-            if (!linkData) return;
-
-            document.getElementById('modalTitle').innerText = `লিংক অ্যানালিটিক্স (${code})`;
-            const shortLink = `${baseUrl}?go=${code}`;
-
-            // QR Code জেনারেট করা
-            document.getElementById('qrcode').innerHTML = '';
-            qrCodeInstance = new QRCode(document.getElementById('qrcode'), {
-                text: shortLink,
-                width: 160,
-                height: 160,
-                colorDark: "#0f172a",
-                colorLight: "#ffffff"
-            });
-
-            // QR ডাউনলোড বাটন হ্যান্ডলার সেট করা
-            document.getElementById('downloadQRBtn').onclick = function() {
-                const qrImg = document.querySelector('#qrcode img');
-                if (qrImg) {
-                    const a = document.createElement('a');
-                    a.href = qrImg.src;
-                    a.download = `qrcode-${code}.png`;
-                    a.click();
-                } else {
-                    showToast("দয়া করে QR ইমেজ জেনারেট হওয়া পর্যন্ত একটু অপেক্ষা করুন।", "error");
-                }
-            };
-
-            // ডিভাইস পরিসংখ্যান প্রিন্ট করা
-            const devContainer = document.getElementById('deviceStats');
-            devContainer.innerHTML = '';
-            const devices = linkData.analytics?.devices || {};
-            if (Object.keys(devices).length === 0) devContainer.innerText = "কোনো ডেটা নেই।";
-            for (let dev in devices) {
-                devContainer.innerHTML += `<div class="flex justify-between text-xs border-b border-slate-800 py-1"><span>${dev}</span><span class="font-bold text-cyan-400">${devices[dev]}টি ক্লিক</span></div>`;
-            }
-
-            // সোর্স পরিসংখ্যান প্রিন্ট করা
-            const srcContainer = document.getElementById('sourceStats');
-            srcContainer.innerHTML = '';
-            const sources = linkData.analytics?.sources || {};
-            if (Object.keys(sources).length === 0) srcContainer.innerText = "কোনো ডেটা নেই।";
-            for (let src in sources) {
-                srcContainer.innerHTML += `<div class="flex justify-between text-xs border-b border-slate-800 py-1"><span class="capitalize">${src}</span><span class="font-bold text-purple-400">${sources[src]}টি ক্লিক</span></div>`;
-            }
-
-            const modal = document.getElementById('infoModal');
-            modal.style.display = 'flex';
-            setTimeout(() => modal.classList.remove('hidden'), 10);
-        }
-
-        function closeModal() {
-            const modal = document.getElementById('infoModal');
-            modal.classList.add('hidden');
-            setTimeout(() => modal.style.display = 'none', 300);
-        }
-
-        function editLink(code, oldUrl) {
-            const newUrl = prompt("নতুন টার্গেট লিংকটি দিন:", oldUrl);
-            if (newUrl && newUrl.trim() !== "" && newUrl !== oldUrl) {
-                database.ref('links/' + code).update({ originalUrl: newUrl.trim() })
-                .then(() => showToast("লিংক সফলভাবে আপডেট করা হয়েছে!"));
-            }
-        }
-
-        function deleteLink(code) {
-            if (confirm("আপনি কি নিশ্চিতভাবে এই লিংকটি ডিলিট করতে চান?")) {
-                database.ref('links/' + code).remove()
-                .then(() => showToast("লিংক ডিলিট করা হয়েছে।", "error"));
-            }
-        }
+        });
     </script>
 </body>
 </html>
