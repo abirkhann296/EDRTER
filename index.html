@@ -234,7 +234,7 @@
             
             <div id="viewCreate" class="space-y-8 animate-fade-in">
                 <div class="border-b border-slate-800/80 pb-4">
-                    <h2 class="text-2xl font-bold tracking-tight brand-text-color">নতুন শর্ট লিংক তৈরি করুন</h2>
+                    <h2 class="text-2xl font-bold tracking-tight brand-text-color">নতুন শর্ট稳 লিংক তৈরি করুন</h2>
                     <p class="text-sm text-slate-400 mt-1">আপনার লিংক শর্ট করুন, ট্র্যাক করুন এবং যেকোনো সময় এডিট করুন।</p>
                 </div>
 
@@ -281,6 +281,7 @@
             <div id="viewOverview" class="hidden space-y-8 animate-fade-in">
                 <div class="border-b border-slate-800 pb-4">
                     <h2 class="text-2xl font-bold brand-text-color">ড্যাশবোর্ড ওভারভিউ</h2>
+                    <p class="text-sm text-slate-400 mt-1">আপনার সব লিংকের লাইভ রিপোর্ট ও পরিসংখ্যান এখানে দেখতে পাবেন।</p>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
                     <div class="bg-panel border p-6 rounded-2xl flex items-center justify-between">
@@ -344,6 +345,7 @@
             });
         }
 
+        // 📊 লাইভ ড্যাশবোর্ড ওভারভিউ ডাটা ফিক্স ও আপডেট লজিক
         function loadDashboardData() {
             database.ref('links').on('value', (snapshot) => {
                 allLinks = [];
@@ -352,14 +354,21 @@
                 if (snapshot.exists()) {
                     snapshot.forEach((childSnapshot) => {
                         const data = childSnapshot.val();
+                        const clicksCount = data.clicks || 0;
+                        totalClicks += clicksCount;
+
                         allLinks.push({
                             code: childSnapshot.key,
                             originalUrl: data.originalUrl,
-                            clicks: data.clicks || 0,
+                            clicks: clicksCount,
                             createdAt: data.createdAt || null
                         });
                     });
                 }
+
+                // ড্যাশবোর্ড ওভারভিউ সেকশনের লাইভ ডাটা কাউন্টার আপডেট
+                document.getElementById('statTotalLinks').innerText = allLinks.length;
+                document.getElementById('statTotalClicks').innerText = totalClicks;
 
                 const timeSortedLinks = [...allLinks].sort((a, b) => b.createdAt - a.createdAt);
                 renderLinksTable(timeSortedLinks);
@@ -405,13 +414,22 @@
             });
         }
 
-        /* 🔄 স্ক্রিনের ঠিক মাঝখানে কাস্টম এডিট পপ-আপ কন্ট্রোল */
+        /* 🔄 এডিট পপ-আপ (Auto-Highlight URL Feature Enabled) */
         function openEditModal(code, oldUrl) {
             document.getElementById('editTargetCode').value = code;
-            document.getElementById('editLongUrl').value = oldUrl;
+            
+            const urlInput = document.getElementById('editLongUrl');
+            urlInput.value = oldUrl;
+            
             const modal = document.getElementById('editModal');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
+
+            // ⚡ ইনপুট বক্সের টেক্সটটি অটোমেটিক সিলেক্ট বা মার্ক করে রাখার কোড
+            setTimeout(() => {
+                urlInput.focus();
+                urlInput.select();
+            }, 50);
         }
 
         function closeEditModal() {
@@ -434,7 +452,7 @@
             }
         }
 
-        /* 🗑️ স্ক্রিনের ঠিক মাঝখানে কাস্টম ডিলিট পপ-আপ কন্ট্রোল */
+        /* 🗑️ ডিলিট পপ-আপ */
         function openDeleteModal(code) {
             document.getElementById('deleteTargetCode').value = code;
             const modal = document.getElementById('deleteModal');
