@@ -27,11 +27,10 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // ডিফল্ট ক্রেডেনশিয়াল (যদি আগে পাসওয়ার্ড চেঞ্জ না করা হয়ে থাকে)
         const DEFAULT_USERNAME = "admin";
         const DEFAULT_PASSWORD = "admin";
 
-        // ⚡ [গতকালকের সেই পারфেক্ট এবং ১০০% নিখুঁত রিডাইরেকশন লজিক]
+        // ⚡ [গতকালকের সেই পারফেক্ট এবং ১০০% নিখুঁত রিডাইরেকশন লজিক]
         const urlParams = new URLSearchParams(window.location.search);
         const shortCode = urlParams.get('go');
         
@@ -62,16 +61,20 @@
 
     <style>
         #mainDashboard, #loginScreen { display: none; }
-        .active-menu { background-color: #0ea5e9; color: white !important; }
+        .active-menu { background-color: #0ea5e9; color: white !important; box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4); }
         
-        /* ডার্ক এবং লাইট মোড ভ্যারিয়েবল কাস্টমাইজেশন */
+        /* 🌓 ডার্ক এবং লাইট মোড শ্যাডো ও ইনপুট গ্লো কাস্টমাইজেশন */
         .dark body { background-color: #020617; color: #f1f5f9; }
-        .dark .bg-panel { background-color: #0f172a; border-color: #1e293b; }
+        .dark .bg-panel { background-color: #0f172a; border-color: #1e293b; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5); }
         .dark .bg-input { background-color: #020617; border-color: #334155; color: #ffffff; }
+        /* ইনপুট বক্সে চাপ দিলে চারপাশে সার্কেল শ্যাডো বা গ্লো ইফেক্ট */
+        .dark .bg-input:focus { border-color: #38bdf8; box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.2); }
         
         html:not(.dark) body { background-color: #f8fafc; color: #0f172a; }
-        html:not(.dark) .bg-panel { background-color: #ffffff; border-color: #e2e8f0; shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1); }
+        html:not(.dark) .bg-panel { background-color: #ffffff; border-color: #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05); }
         html:not(.dark) .bg-input { background-color: #ffffff; border-color: #cbd5e1; color: #0f172a; }
+        html:not(.dark) .bg-input:focus { border-color: #0ea5e9; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.2); }
+        
         html:not(.dark) .text-slate-400 { color: #64748b; }
         html:not(.dark) .text-slate-300 { color: #334155; }
     </style>
@@ -83,7 +86,6 @@
     <script>
         if (!shortCode) {
             window.addEventListener('DOMContentLoaded', () => {
-                // থিম সেটআপ
                 if (localStorage.getItem('theme') === 'light') {
                     document.documentElement.classList.remove('dark');
                 } else {
@@ -97,12 +99,10 @@
             if (document.documentElement.classList.contains('dark')) {
                 document.documentElement.classList.remove('dark');
                 localStorage.setItem('theme', 'light');
-                document.getElementById('themeIcon').className = "fa-solid fa-moon text-lg";
                 showToast("লাইট মোড অ্যাক্টিভ হয়েছে");
             } else {
                 document.documentElement.classList.add('dark');
                 localStorage.setItem('theme', 'dark');
-                document.getElementById('themeIcon').className = "fa-solid fa-sun text-lg";
                 showToast("ডার্ক মোড অ্যাক্টিভ হয়েছে");
             }
         }
@@ -200,15 +200,13 @@
 
     <div id="mainDashboard" class="w-full min-h-screen flex flex-col md:flex-row">
         
-        <aside class="w-full md:w-64 bg-slate-900 border-r border-slate-800 p-6 flex flex-col justify-between gap-6 shrink-0 dark:border-slate-800">
+        <aside class="w-full md:w-64 bg-slate-900 border-r border-slate-800 p-6 flex flex-col justify-between shrink-0 dark:border-slate-800 md:h-screen md:sticky md:top-0">
             <div class="space-y-8">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="bg-sky-500 p-2.5 rounded-xl"><i class="fa-solid fa-chart-pie text-white text-xl"></i></div>
-                        <div>
-                            <h1 class="text-xl font-bold text-white tracking-wide">LinkCraft</h1>
-                            <span class="text-xs font-bold text-sky-400 tracking-widest uppercase">Analytics Pro</span>
-                        </div>
+                <div class="flex items-center gap-3">
+                    <div class="bg-sky-500 p-2.5 rounded-xl shadow-lg shadow-sky-500/20"><i class="fa-solid fa-chart-pie text-white text-xl"></i></div>
+                    <div>
+                        <h1 class="text-xl font-bold text-white tracking-wide">LinkCraft</h1>
+                        <span class="text-xs font-bold text-sky-400 tracking-widest uppercase">Analytics Pro</span>
                     </div>
                 </div>
 
@@ -225,11 +223,11 @@
                 </nav>
             </div>
 
-            <div class="space-y-3">
-                <button onclick="toggleTheme()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 py-2.5 rounded-xl transition text-sm cursor-pointer flex items-center justify-center gap-2 border border-slate-700">
-                    <i id="themeIcon" class="fa-solid fa-sun text-sm"></i> <span>থিম পরিবর্তন করুন</span>
+            <div class="space-y-3 pt-6 mt-6 border-t border-slate-800/60 md:border-t-0 md:pt-0">
+                <button onclick="toggleTheme()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 py-2.5 rounded-xl transition text-sm cursor-pointer flex items-center justify-center gap-2 border border-slate-700/60 shadow-md">
+                    <i class="fa-solid fa-circle-half-stroke text-sm text-sky-400"></i> <span>থিম পরিবর্তন করুন</span>
                 </button>
-                <button onclick="sessionStorage.clear(); window.location.reload();" class="w-full bg-red-600/10 hover:bg-red-600 text-red-400 hover:text-white py-2.5 rounded-xl transition font-semibold text-sm cursor-pointer flex items-center justify-center gap-2">
+                <button onclick="sessionStorage.clear(); window.location.reload();" class="w-full bg-red-600/10 hover:bg-red-600 text-red-400 hover:text-white py-2.5 rounded-xl transition font-semibold text-sm cursor-pointer flex items-center justify-center gap-2 border border-red-500/10">
                     <i class="fa-solid fa-right-from-bracket"></i> লগআউট করুন
                 </button>
             </div>
@@ -238,17 +236,15 @@
         <main class="flex-1 p-6 md:p-10 space-y-8 max-w-5xl mx-auto w-full overflow-hidden">
             
             <div id="viewCreate" class="space-y-8 animate-fade-in">
-                <div class="border-b border-slate-800 pb-4 dark:border-slate-800 flex justify-between items-center">
-                    <div>
-                        <h2 class="text-2xl font-black">নতুন শর্ট লিংক তৈরি করুন</h2>
-                        <p class="text-sm text-slate-400">যেকোনো বড় ইউআরএল পেস্ট করে কাস্টম শর্ট কোড জেনারেট করুন।</p>
-                    </div>
+                <div class="border-b border-slate-800 pb-4 dark:border-slate-800">
+                    <h2 class="text-2xl font-black">নতুন শর্ট লিংক তৈরি করুন</h2>
+                    <p class="text-sm text-slate-400">যেকোনো বড় ইউআরএল পেস্ট করে কাস্টম শর্ট কোড জেনারেট করুন।</p>
                 </div>
 
-                <div class="bg-panel p-6 rounded-2xl border space-y-4 shadow-sm">
+                <div class="bg-panel p-6 rounded-2xl border space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <input type="url" id="longUrl" placeholder="मूल লিংকটি এখানে দিন (https://...)" class="md:col-span-2 bg-input border rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:border-sky-500">
-                        <input type="text" id="customCode" placeholder="কাস্টম কোড বা নাম (ঐচ্ছিক)" class="bg-input border rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:border-sky-500">
+                        <input type="url" id="longUrl" placeholder="মূল লিংকটি এখানে দিন (https://...)" class="md:col-span-2 bg-input border rounded-xl px-4 py-3.5 text-sm focus:outline-none transition-all duration-200">
+                        <input type="text" id="customCode" placeholder="কাস্টম কোড বা নাম (ঐচ্ছিক)" class="bg-input border rounded-xl px-4 py-3.5 text-sm focus:outline-none transition-all duration-200">
                     </div>
                     <button onclick="createShortLink()" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-bold py-3.5 rounded-xl transition duration-200 shadow-lg cursor-pointer">
                         ম্যাজিক লিংক তৈরি করুন
@@ -264,7 +260,7 @@
                         <input type="text" id="searchInput" oninput="filterLinks()" placeholder="🔍 কোড দিয়ে লিংক খুঁজুন..." class="bg-panel border rounded-xl px-4 py-2 text-xs w-full sm:w-64 focus:outline-none focus:border-sky-500">
                     </div>
 
-                    <div class="bg-panel rounded-2xl border overflow-hidden shadow-sm">
+                    <div class="bg-panel rounded-2xl border overflow-hidden">
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse">
                                 <thead>
@@ -292,21 +288,21 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    <div class="bg-panel border p-6 rounded-2xl flex items-center justify-between shadow-sm">
+                    <div class="bg-panel border p-6 rounded-2xl flex items-center justify-between">
                         <div>
                             <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">মোট লিংক সংখ্যা</p>
                             <h3 id="statTotalLinks" class="text-3xl font-black">0</h3>
                         </div>
                         <div class="bg-sky-500/10 p-4 rounded-xl border border-sky-500/20 text-sky-400 text-2xl"><i class="fa-solid fa-link"></i></div>
                     </div>
-                    <div class="bg-panel border p-6 rounded-2xl flex items-center justify-between shadow-sm">
+                    <div class="bg-panel border p-6 rounded-2xl flex items-center justify-between">
                         <div>
                             <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">সর্বমোট ক্লিক (সব মিলে)</p>
                             <h3 id="statTotalClicks" class="text-3xl font-black text-emerald-500">0</h3>
                         </div>
                         <div class="bg-emerald-500/10 p-4 rounded-xl border border-emerald-500/20 text-emerald-400 text-2xl"><i class="fa-solid fa-chart-simple"></i></div>
                     </div>
-                    <div class="bg-panel border p-6 rounded-2xl flex items-center justify-between shadow-sm">
+                    <div class="bg-panel border p-6 rounded-2xl flex items-center justify-between">
                         <div class="max-w-[70%]">
                             <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">টপ পারফর্মিং লিংক</p>
                             <h3 id="statTopLinkCode" class="text-xl font-black text-amber-500 truncate">N/A</h3>
@@ -316,7 +312,7 @@
                     </div>
                 </div>
 
-                <div class="bg-panel border rounded-2xl p-6 space-y-4 shadow-sm">
+                <div class="bg-panel border rounded-2xl p-6 space-y-4">
                     <div>
                         <h3 class="text-lg font-bold flex items-center gap-2">
                             <i class="fa-solid fa-arrow-trend-up text-amber-500"></i> লিংকের পারফরম্যান্স র‍্যাংকিং (লাইভ)
@@ -335,15 +331,15 @@
                     <p class="text-sm text-slate-400">আপনার ড্যাশবোর্ড প্যানেলের লগইন পাসওয়ার্ড পরিবর্তন করুন।</p>
                 </div>
 
-                <div class="bg-panel border p-6 rounded-2xl shadow-sm max-w-md">
+                <div class="bg-panel border p-6 rounded-2xl max-w-md">
                     <form onsubmit="changeAdminPassword(event)" class="space-y-4">
                         <div>
                             <label class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">নতুন ইউজারনেম</label>
-                            <input type="text" id="newUsername" required class="w-full bg-input border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-sky-500">
+                            <input type="text" id="newUsername" required class="w-full bg-input border rounded-xl px-4 py-3 text-sm focus:outline-none transition-all duration-200">
                         </div>
                         <div>
                             <label class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">নতুন পাসওয়ার্ড</label>
-                            <input type="password" id="newPassword" required class="w-full bg-input border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-sky-500">
+                            <input type="password" id="newPassword" required class="w-full bg-input border rounded-xl px-4 py-3 text-sm focus:outline-none transition-all duration-200">
                         </div>
                         <button type="submit" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 rounded-xl transition duration-200 cursor-pointer">
                             ক্রেডেনশিয়াল আপডেট করুন
@@ -403,10 +399,8 @@
                     });
                 }
 
-                // সময় অনুযায়ী সর্টিং (নতুন লিংক সবার উপরে)
                 const timeSortedLinks = [...allLinks].sort((a, b) => b.createdAt - a.createdAt);
 
-                // ড্যাশবোর্ড কার্ডের লাইভ পরিসংখ্যান আপডেট
                 document.getElementById('statTotalLinks').innerText = allLinks.length;
                 document.getElementById('statTotalClicks').innerText = totalClicks;
                 document.getElementById('statTopLinkCode').innerText = topLink.code;
@@ -416,11 +410,9 @@
                 renderRankingBox(allLinks);
             });
 
-            // সেটিংস ফর্মের ডিফল্ট ভ্যালু লোড
             document.getElementById('newUsername').value = localStorage.getItem("admin_username") || DEFAULT_USERNAME;
         }
 
-        // সব লিংকসমূহ টেবিল রেন্ডার করা
         function renderLinksTable(links) {
             const tableBody = document.getElementById('linksTable');
             tableBody.innerHTML = '';
@@ -460,7 +452,6 @@
             });
         }
 
-        // ক্লিক অনুসারে সিরিয়াল র‍্যাংকিং বক্স রেন্ডার
         function renderRankingBox(links) {
             const rankingContainer = document.getElementById('rankingLinksBox');
             rankingContainer.innerHTML = '';
@@ -495,7 +486,7 @@
                             </div>
                         </div>
                         <div class="text-right shrink-0">
-                            <span class="bg-emerald-500/10 text-emerald-500 px-3 py-1 rounded-lg text-xs font-black border border-emerald-500/20">
+                            <span class="bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-lg text-xs font-black border border-emerald-500/20">
                                 ${data.clicks} Clicks
                             </span>
                         </div>
@@ -504,7 +495,6 @@
             });
         }
 
-        // এডমিন পাসওয়ার্ড পরিবর্তন লজিক
         function changeAdminPassword(e) {
             e.preventDefault();
             const user = document.getElementById('newUsername').value.trim();
