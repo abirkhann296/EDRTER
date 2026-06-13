@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <title>LinkCraft Pro | Premium Analytics Dashboard</title>
+    <title>LinkCraft Shortner | Premium Dashboard</title>
     <meta property="og:title" content="LinkCraft - Premium Short Link">
     <meta property="og:description" content="Click to open the securely shortened premium link via LinkCraft Analytics.">
     <meta property="og:type" content="website">
@@ -61,22 +61,20 @@
 
     <style>
         #mainDashboard, #loginScreen { display: none; }
-        .active-menu { background-color: #0ea5e9; color: white !important; box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4); }
+        .active-menu { background-color: #0ea5e9; color: white !important; box-shadow: 0 4px 14px rgba(14, 165, 233, 0.3); }
         
-        /* 🌓 ডার্ক এবং লাইট মোড শ্যাডো ও ইনপুট গ্লো কাস্টমাইজেশন */
-        .dark body { background-color: #020617; color: #f1f5f9; }
-        .dark .bg-panel { background-color: #0f172a; border-color: #1e293b; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5); }
-        .dark .bg-input { background-color: #020617; border-color: #334155; color: #ffffff; }
-        /* ইনপুট বক্সে চাপ দিলে চারপাশে সার্কেল শ্যাডো বা গ্লো ইফেক্ট */
-        .dark .bg-input:focus { border-color: #38bdf8; box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.2); }
+        /* 🎨 স্ক্রিনশট ৩ অনুযায়ী কাস্টম ডার্ক থিম এবং কালার প্যালেট */
+        .dark body { background-color: #0a1120; color: #f1f5f9; }
+        .dark .bg-panel { background-color: #111c30; border-color: #1e2e4a; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.7); }
+        .dark .bg-input { background-color: #0a1120; border-color: #223756; color: #ffffff; }
+        /* ইনপুট বক্সে চাপ দিলে চারপাশে সার্কেল শ্যাডো গ্লো ইফেক্ট */
+        .dark .bg-input:focus { border-color: #38bdf8; box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15); }
         
+        /* লাইট মোড ব্যাকআপ */
         html:not(.dark) body { background-color: #f8fafc; color: #0f172a; }
-        html:not(.dark) .bg-panel { background-color: #ffffff; border-color: #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05); }
+        html:not(.dark) .bg-panel { background-color: #ffffff; border-color: #e2e8f0; box-shadow: 0 4px 20px -2px rgba(0,0,0,0.05); }
         html:not(.dark) .bg-input { background-color: #ffffff; border-color: #cbd5e1; color: #0f172a; }
-        html:not(.dark) .bg-input:focus { border-color: #0ea5e9; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.2); }
-        
-        html:not(.dark) .text-slate-400 { color: #64748b; }
-        html:not(.dark) .text-slate-300 { color: #334155; }
+        html:not(.dark) .bg-input:focus { border-color: #0ea5e9; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15); }
     </style>
 </head>
 <body class="font-sans min-h-screen relative transition-colors duration-200">
@@ -200,18 +198,18 @@
 
     <div id="mainDashboard" class="w-full min-h-screen flex flex-col md:flex-row">
         
-        <aside class="w-full md:w-64 bg-slate-900 border-r border-slate-800 p-6 flex flex-col justify-between shrink-0 dark:border-slate-800 md:h-screen md:sticky md:top-0">
+        <aside class="w-full md:w-64 bg-[#0d1626] border-r border-[#1e2e4a] p-6 flex flex-col justify-between shrink-0 md:h-screen md:sticky md:top-0">
             <div class="space-y-8">
                 <div class="flex items-center gap-3">
                     <div class="bg-sky-500 p-2.5 rounded-xl shadow-lg shadow-sky-500/20"><i class="fa-solid fa-chart-pie text-white text-xl"></i></div>
                     <div>
                         <h1 class="text-xl font-bold text-white tracking-wide">LinkCraft</h1>
-                        <span class="text-xs font-bold text-sky-400 tracking-widest uppercase">Analytics Pro</span>
+                        <span class="text-xs font-bold text-sky-400 tracking-widest uppercase">Shortner Pro</span>
                     </div>
                 </div>
 
                 <nav class="space-y-2">
-                    <button onclick="switchTab('viewCreate', this)" class="menu-item active-menu w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition hover:bg-slate-800 cursor-pointer text-left text-slate-400">
+                    <button onclick="switchTab('viewCreate', this)" class="menu-item active-menu w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition hover:bg-slate-800 cursor-pointer text-left text-slate-300">
                         <i class="fa-solid fa-plus-circle text-base w-5"></i> নতুন লিংক তৈরি করুন
                     </button>
                     <button onclick="switchTab('viewOverview', this)" class="menu-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm text-slate-400 hover:text-white transition hover:bg-slate-800 cursor-pointer text-left">
@@ -223,8 +221,8 @@
                 </nav>
             </div>
 
-            <div class="space-y-3 pt-6 mt-6 border-t border-slate-800/60 md:border-t-0 md:pt-0">
-                <button onclick="toggleTheme()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 py-2.5 rounded-xl transition text-sm cursor-pointer flex items-center justify-center gap-2 border border-slate-700/60 shadow-md">
+            <div class="space-y-3 pt-6 mt-6 border-t border-slate-800 md:border-t-0 md:pt-0">
+                <button onclick="toggleTheme()" class="w-full bg-[#162238] hover:bg-slate-800 text-slate-200 py-2.5 rounded-xl transition text-sm cursor-pointer flex items-center justify-center gap-2 border border-slate-700/40">
                     <i class="fa-solid fa-circle-half-stroke text-sm text-sky-400"></i> <span>থিম পরিবর্তন করুন</span>
                 </button>
                 <button onclick="sessionStorage.clear(); window.location.reload();" class="w-full bg-red-600/10 hover:bg-red-600 text-red-400 hover:text-white py-2.5 rounded-xl transition font-semibold text-sm cursor-pointer flex items-center justify-center gap-2 border border-red-500/10">
@@ -236,26 +234,26 @@
         <main class="flex-1 p-6 md:p-10 space-y-8 max-w-5xl mx-auto w-full overflow-hidden">
             
             <div id="viewCreate" class="space-y-8 animate-fade-in">
-                <div class="border-b border-slate-800 pb-4 dark:border-slate-800">
-                    <h2 class="text-2xl font-black">নতুন শর্ট লিংক তৈরি করুন</h2>
-                    <p class="text-sm text-slate-400">যেকোনো বড় ইউআরএল পেস্ট করে কাস্টম শর্ট কোড জেনারেট করুন।</p>
+                <div class="border-b border-slate-800/80 pb-4">
+                    <h2 class="text-2xl font-bold tracking-tight">নতুন শর্ট লিংক তৈরি করুন</h2>
+                    <p class="text-sm text-slate-400 mt-1">আপনার লিংক শর্ট করুন, ট্র্যাক করুন এবং যেকোনো সময় এডিট করুন।</p>
                 </div>
 
                 <div class="bg-panel p-6 rounded-2xl border space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <input type="url" id="longUrl" placeholder="মূল লিংকটি এখানে দিন (https://...)" class="md:col-span-2 bg-input border rounded-xl px-4 py-3.5 text-sm focus:outline-none transition-all duration-200">
-                        <input type="text" id="customCode" placeholder="কাস্টম কোড বা নাম (ঐচ্ছিক)" class="bg-input border rounded-xl px-4 py-3.5 text-sm focus:outline-none transition-all duration-200">
+                        <input type="text" id="customCode" placeholder="কাস্টম নাম/কোড (ঐচ্ছিক)" class="bg-input border rounded-xl px-4 py-3.5 text-sm focus:outline-none transition-all duration-200">
                     </div>
-                    <button onclick="createShortLink()" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-bold py-3.5 rounded-xl transition duration-200 shadow-lg cursor-pointer">
-                        ম্যাজিক লিংক তৈরি করুন
+                    <button onclick="createShortLink()" class="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-bold py-3.5 rounded-xl transition duration-200 shadow-md cursor-pointer">
+                        লিংক শর্ট করুন
                     </button>
                 </div>
 
                 <div class="space-y-4 pt-4">
                     <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3">
-                        <div>
-                            <h3 class="text-xl font-bold">আপনার তৈরি করা সব লিংকসমূহ</h3>
-                            <p class="text-xs text-slate-400">তৈরি করা সব লিংকের তালিকা (নতুন লিংক সবার উপরে থাকবে)।</p>
+                        <div class="flex items-center gap-2 text-emerald-400 font-bold">
+                            <i class="fa-solid fa-bars-staggered"></i>
+                            <h3 class="text-lg">আপনার তৈরি করা লিংকসমূহ</h3>
                         </div>
                         <input type="text" id="searchInput" oninput="filterLinks()" placeholder="🔍 কোড দিয়ে লিংক খুঁজুন..." class="bg-panel border rounded-xl px-4 py-2 text-xs w-full sm:w-64 focus:outline-none focus:border-sky-500">
                     </div>
@@ -264,16 +262,16 @@
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse">
                                 <thead>
-                                    <tr class="border-b border-slate-800/60 dark:border-slate-800 text-slate-400 text-xs uppercase tracking-wider bg-panel">
+                                    <tr class="border-b border-[#1e2e4a] text-slate-400 text-xs font-bold uppercase bg-[#162238]/60">
                                         <th class="p-4 text-center w-12">#</th>
-                                        <th class="p-4">শর্ট লিংক কোড</th>
-                                        <th class="p-4">টার্গেট ইউআরএল (Original)</th>
+                                        <th class="p-4">শর্ট লিংক</th>
+                                        <th class="p-4">টার্গেট লিংক (Original)</th>
                                         <th class="p-4">তৈরির সময়</th>
-                                        <th class="p-4 text-center">লাইভ ক্লিক</th>
+                                        <th class="p-4 text-center">ক্লিক সংখ্যা</th>
                                         <th class="p-4 text-center">অ্যাকশন</th>
                                     </tr>
                                 </thead>
-                                <tbody id="linksTable" class="divide-y divide-slate-800/40 text-xs sm:text-sm">
+                                <tbody id="linksTable" class="divide-y divide-[#1e2e4a]/60 text-xs sm:text-sm">
                                     </tbody>
                             </table>
                         </div>
@@ -282,9 +280,8 @@
             </div>
 
             <div id="viewOverview" class="hidden space-y-8 animate-fade-in">
-                <div class="border-b border-slate-800 pb-4 dark:border-slate-800">
-                    <h2 class="text-2xl font-black">ড্যাশবোর্ড ওভারভিউ</h2>
-                    <p class="text-sm text-slate-400">আপনার ওভারঅল সব লিংকের লাইভ রিপোর্ট ও পরিসংখ্যান।</p>
+                <div class="border-b border-slate-800 pb-4">
+                    <h2 class="text-2xl font-bold">ড্যাশবোর্ড ওভারভিউ</h2>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -297,8 +294,8 @@
                     </div>
                     <div class="bg-panel border p-6 rounded-2xl flex items-center justify-between">
                         <div>
-                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">সর্বমোট ক্লিক (সব মিলে)</p>
-                            <h3 id="statTotalClicks" class="text-3xl font-black text-emerald-500">0</h3>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">সর্বমোট ক্লিক</p>
+                            <h3 id="statTotalClicks" class="text-3xl font-black text-emerald-400">0</h3>
                         </div>
                         <div class="bg-emerald-500/10 p-4 rounded-xl border border-emerald-500/20 text-emerald-400 text-2xl"><i class="fa-solid fa-chart-simple"></i></div>
                     </div>
@@ -313,36 +310,27 @@
                 </div>
 
                 <div class="bg-panel border rounded-2xl p-6 space-y-4">
-                    <div>
-                        <h3 class="text-lg font-bold flex items-center gap-2">
-                            <i class="fa-solid fa-arrow-trend-up text-amber-500"></i> লিংকের পারফরম্যান্স র‍্যাংকিং (লাইভ)
-                        </h3>
-                        <p class="text-xs text-slate-400 mt-0.5">সবচেয়ে বেশি ক্লিক হওয়া লিংক থেকে কম ক্লিক হওয়া লিংকের ক্রমানুসার তালিকা।</p>
-                    </div>
-                    
-                    <div class="divide-y divide-slate-800/40 dark:divide-slate-800" id="rankingLinksBox">
-                        </div>
+                    <h3 class="text-lg font-bold flex items-center gap-2"><i class="fa-solid fa-arrow-trend-up text-amber-500"></i> লিংকের র‍্যাংকিং (লাইভ)</h3>
+                    <div class="divide-y divide-slate-800" id="rankingLinksBox"></div>
                 </div>
             </div>
 
             <div id="viewSettings" class="hidden space-y-6 animate-fade-in">
-                <div class="border-b border-slate-800 pb-4 dark:border-slate-800">
-                    <h2 class="text-2xl font-black">এডমিন সেটিংস</h2>
-                    <p class="text-sm text-slate-400">আপনার ড্যাশবোর্ড প্যানেলের লগইন পাসওয়ার্ড পরিবর্তন করুন।</p>
+                <div class="border-b border-slate-800 pb-4">
+                    <h2 class="text-2xl font-bold">এডমিন সেটিংস</h2>
                 </div>
-
                 <div class="bg-panel border p-6 rounded-2xl max-w-md">
                     <form onsubmit="changeAdminPassword(event)" class="space-y-4">
                         <div>
-                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">নতুন ইউজারনেম</label>
+                            <label class="text-xs font-bold text-slate-400 uppercase block mb-2">নতুন ইউজারনেম</label>
                             <input type="text" id="newUsername" required class="w-full bg-input border rounded-xl px-4 py-3 text-sm focus:outline-none transition-all duration-200">
                         </div>
                         <div>
-                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">নতুন পাসওয়ার্ড</label>
+                            <label class="text-xs font-bold text-slate-400 uppercase block mb-2">নতুন পাসওয়ার্ড</label>
                             <input type="password" id="newPassword" required class="w-full bg-input border rounded-xl px-4 py-3 text-sm focus:outline-none transition-all duration-200">
                         </div>
                         <button type="submit" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 rounded-xl transition duration-200 cursor-pointer">
-                            ক্রেডেনশিয়াল আপডেট করুন
+                            আপডেট করুন
                         </button>
                     </form>
                 </div>
@@ -383,7 +371,6 @@
                     snapshot.forEach((childSnapshot) => {
                         const data = childSnapshot.val();
                         const clicksCount = data.clicks || 0;
-                        
                         totalClicks += clicksCount;
 
                         if (clicksCount > topLink.clicks) {
@@ -413,6 +400,7 @@
             document.getElementById('newUsername').value = localStorage.getItem("admin_username") || DEFAULT_USERNAME;
         }
 
+        // ৩নং স্ক্রিনশটের হুবহু টেবিল ডেটা রেন্ডার
         function renderLinksTable(links) {
             const tableBody = document.getElementById('linksTable');
             tableBody.innerHTML = '';
@@ -428,23 +416,23 @@
                 const timeDisplay = timeAgo(data.createdAt);
 
                 tableBody.innerHTML += `
-                    <tr class="hover:bg-slate-500/5 transition">
-                        <td class="p-4 text-center font-bold text-slate-400">${index++}</td>
-                        <td class="p-4 font-bold text-sky-500">
-                            <span class="bg-sky-500/5 px-2 py-1 rounded-md border border-sky-500/10">${data.code}</span>
-                            <button onclick="navigator.clipboard.writeText('${shortLink}'); showToast('লিংক কপি হয়েছে!')" class="ml-2 text-slate-400 hover:text-sky-500 cursor-pointer transition" title="কপি করুন"><i class="fa-regular fa-copy"></i></button>
+                    <tr class="hover:bg-slate-500/5 transition border-b border-[#1e2e4a]/40">
+                        <td class="p-4 text-center font-semibold text-slate-500">${index++}</td>
+                        <td class="p-4 font-bold text-sky-400">
+                            <span class="cursor-pointer hover:underline" onclick="window.open('${shortLink}', '_blank')">${data.code}</span>
+                            <button onclick="navigator.clipboard.writeText('${shortLink}'); showToast('লিংক কপি হয়েছে!')" class="ml-1.5 text-slate-500 hover:text-sky-400 cursor-pointer transition"><i class="fa-regular fa-copy text-xs"></i></button>
                         </td>
-                        <td class="p-4 max-w-xs truncate text-slate-600 dark:text-slate-300 font-medium" title="${data.originalUrl}">${data.originalUrl}</td>
-                        <td class="p-4 text-slate-400 font-medium">${timeDisplay}</td>
+                        <td class="p-4 max-w-xs truncate text-slate-300 font-medium" title="${data.originalUrl}">${data.originalUrl}</td>
+                        <td class="p-4 text-slate-500 font-medium">${timeDisplay}</td>
                         <td class="p-4 text-center">
-                            <span class="bg-slate-950 px-2.5 py-1 rounded-full text-emerald-500 font-bold border border-emerald-500/10 shadow-inner">
-                                <i class="fa-solid fa-bolt text-[10px] mr-1 opacity-80"></i>${data.clicks}
+                            <span class="bg-[#102a3a] text-emerald-400 px-3 py-1 rounded text-xs font-bold border border-emerald-500/10 inline-flex items-center gap-1.5">
+                                <i class="fa-solid fa-chart-simple text-[10px]"></i> ${data.clicks}
                             </span>
                         </td>
                         <td class="p-4 text-center">
-                            <div class="flex items-center justify-center gap-1.5">
-                                <button onclick="editLink('${data.code}', '${data.originalUrl}')" class="bg-blue-500/10 hover:bg-blue-500 text-blue-500 hover:text-white p-2 rounded-lg transition cursor-pointer" title="এডিট"><i class="fa-solid fa-pen text-xs"></i></button>
-                                <button onclick="deleteLink('${data.code}')" class="bg-red-500/10 hover:bg-red-600 text-red-500 hover:text-white p-2 rounded-lg transition cursor-pointer" title="ডিলিট"><i class="fa-solid fa-trash text-xs"></i></button>
+                            <div class="flex items-center justify-center gap-2">
+                                <button onclick="editLink('${data.code}', '${data.originalUrl}')" class="bg-blue-500/10 hover:bg-blue-500 text-blue-400 hover:text-white p-2 rounded transition cursor-pointer"><i class="fa-solid fa-pen text-xs"></i></button>
+                                <button onclick="deleteLink('${data.code}')" class="bg-red-500/10 hover:bg-red-600 text-red-400 hover:text-white p-2 rounded transition cursor-pointer"><i class="fa-solid fa-trash text-xs"></i></button>
                             </div>
                         </td>
                     </tr>
@@ -456,40 +444,19 @@
             const rankingContainer = document.getElementById('rankingLinksBox');
             rankingContainer.innerHTML = '';
 
-            if (links.length === 0) {
-                rankingContainer.innerHTML = `<p class="text-sm text-slate-500 text-center py-4">কোনো ডাটা উপলব্ধ নেই।</p>`;
-                return;
-            }
+            if (links.length === 0) return;
 
             const clickSortedLinks = [...links].sort((a, b) => b.clicks - a.clicks);
 
             let rank = 1;
             clickSortedLinks.forEach((data) => {
-                const shortLink = `${baseUrl}?go=${data.code}`;
-                
-                let rankBadgeColor = "text-slate-400 bg-slate-950/40";
-                if(rank === 1) rankBadgeColor = "text-amber-500 bg-amber-500/10 border border-amber-500/20";
-                if(rank === 2) rankBadgeColor = "text-slate-400 bg-slate-500/10 border border-slate-500/20";
-                if(rank === 3) rankBadgeColor = "text-amber-700 bg-amber-700/10 border border-amber-700/20";
-
                 rankingContainer.innerHTML += `
-                    <div class="flex items-center justify-between py-3.5 first:pt-0 last:pb-0 transition hover:bg-slate-500/5 px-2 rounded-xl">
-                        <div class="flex items-center gap-4 min-w-0 max-w-[75%]">
-                            <span class="w-7 h-7 flex items-center justify-center rounded-lg text-xs font-black shrink-0 ${rankBadgeColor}">
-                                ${rank++}
-                            </span>
-                            <div class="min-w-0">
-                                <p class="font-bold text-sm flex items-center gap-2">
-                                    <span class="text-sky-500 hover:underline cursor-pointer" onclick="window.open('${shortLink}', '_blank')">${data.code}</span>
-                                </p>
-                                <p class="text-xs text-slate-400 truncate mt-0.5" title="${data.originalUrl}">${data.originalUrl}</p>
-                            </div>
+                    <div class="flex items-center justify-between py-3 transition hover:bg-slate-500/5 px-2 rounded-xl">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="w-6 h-6 flex items-center justify-center rounded bg-[#162238] text-xs font-bold text-slate-400">${rank++}</span>
+                            <span class="font-bold text-sm text-sky-400">${data.code}</span>
                         </div>
-                        <div class="text-right shrink-0">
-                            <span class="bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-lg text-xs font-black border border-emerald-500/20">
-                                ${data.clicks} Clicks
-                            </span>
-                        </div>
+                        <span class="bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded text-xs font-bold">${data.clicks} Clicks</span>
                     </div>
                 `;
             });
@@ -504,31 +471,25 @@
                 localStorage.setItem("admin_username", user);
                 localStorage.setItem("admin_password", pass);
                 document.getElementById('newPassword').value = '';
-                showToast("ইউজারনেম ও পাসওয়ার্ড সফলভাবে পরিবর্তিত হয়েছে!");
-            } else {
-                showToast("অনুগ্রহ করে সঠিক তথ্য দিন।", "error");
+                showToast("ইউজারনেম ও পাসওয়ার্ড পরিবর্তিত হয়েছে!");
             }
         }
 
         function filterLinks() {
             const query = document.getElementById('searchInput').value.toLowerCase().trim();
-            const filtered = allLinks.filter(link => 
-                link.code.includes(query) || link.originalUrl.toLowerCase().includes(query)
-            );
+            const filtered = allLinks.filter(link => link.code.includes(query) || link.originalUrl.toLowerCase().includes(query));
             renderLinksTable(filtered);
         }
 
         function editLink(code, oldUrl) {
             const newUrl = prompt("নতুন টার্গেট লিংকটি দিন:", oldUrl);
             if (newUrl && newUrl.trim() !== "" && newUrl !== oldUrl) {
-                database.ref('links/' + code).update({
-                    originalUrl: newUrl.trim()
-                }).then(() => showToast("লিংক সফলভাবে আপডেট করা হয়েছে!"));
+                database.ref('links/' + code).update({ originalUrl: newUrl.trim() }).then(() => showToast("লিংক আপডেট করা হয়েছে!"));
             }
         }
 
         function deleteLink(code) {
-            if (confirm("আপনি কি নিশ্চিতভাবে এই লিংকটি ডিলিট করতে চান?")) {
+            if (confirm("আপনি কি নিশ্চিত ডিলিট করতে চান?")) {
                 database.ref('links/' + code).remove().then(() => showToast("লিংক ডিলিট করা হয়েছে।", "error"));
             }
         }
