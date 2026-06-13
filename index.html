@@ -38,7 +38,13 @@
             const linkRef = database.ref('links/' + shortCode);
             linkRef.once('value').then((snapshot) => {
                 if (snapshot.exists()) {
-                    const originalUrl = snapshot.val().originalUrl;
+                    const data = snapshot.val();
+                    const originalUrl = data.originalUrl;
+                    
+                    // ঘণ্টার ক্লিক ট্র্যাকিংয়ের জন্য ক্লিক টাইমস্ট্যাম্প রেকর্ড করা
+                    const clickTime = Date.now();
+                    linkRef.child('clickTimestamps').push(clickTime);
+
                     linkRef.child('clicks').transaction((currentClicks) => {
                         return (currentClicks || 0) + 1;
                     }, (error, committed, snapshot) => {
@@ -234,7 +240,7 @@
             
             <div id="viewCreate" class="space-y-8 animate-fade-in">
                 <div class="border-b border-slate-800/80 pb-4">
-                    <h2 class="text-2xl font-bold tracking-tight brand-text-color">নতুন শর্ট稳 লিংক তৈরি করুন</h2>
+                    <h2 class="text-2xl font-bold tracking-tight brand-text-color">নতুন শর্ট লিংক তৈরি করুন</h2>
                     <p class="text-sm text-slate-400 mt-1">আপনার লিংক শর্ট করুন, ট্র্যাক করুন এবং যেকোনো সময় এডিট করুন।</p>
                 </div>
 
@@ -281,23 +287,44 @@
             <div id="viewOverview" class="hidden space-y-8 animate-fade-in">
                 <div class="border-b border-slate-800 pb-4">
                     <h2 class="text-2xl font-bold brand-text-color">ড্যাশবোর্ড ওভারভিউ</h2>
-                    <p class="text-sm text-slate-400 mt-1">আপনার সব লিংকের লাইভ রিপোর্ট ও পরিসংখ্যান এখানে দেখতে পাবেন।</p>
+                    <p class="text-sm text-slate-400 mt-1">আপনার সব লিংক ও ক্লিকের বিস্তারিত লাইভ পরিসংখ্যান রিপোর্ট।</p>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    <div class="bg-panel border p-6 rounded-2xl flex items-center justify-between">
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                    <div class="bg-panel border p-5 rounded-2xl flex items-center justify-between">
                         <div>
-                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">মোট লিংক সংখ্যা</p>
-                            <h3 id="statTotalLinks" class="text-3xl font-black text-white">0</h3>
+                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">মোট লিংক সংখ্যা</p>
+                            <h3 id="statTotalLinks" class="text-2xl font-black text-white">0</h3>
                         </div>
-                        <div class="bg-sky-500/10 p-4 rounded-xl border border-sky-500/20 text-sky-400 text-2xl"><i class="fa-solid fa-link"></i></div>
+                        <div class="bg-sky-500/10 p-3.5 rounded-xl border border-sky-500/20 text-sky-400 text-xl"><i class="fa-solid fa-link"></i></div>
                     </div>
-                    <div class="bg-panel border p-6 rounded-2xl flex items-center justify-between">
+                    <div class="bg-panel border p-5 rounded-2xl flex items-center justify-between">
                         <div>
-                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">সর্বমোট ক্লিক</p>
-                            <h3 id="statTotalClicks" class="text-3xl font-black text-emerald-400">0</h3>
+                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">সর্বমোট ক্লিক</p>
+                            <h3 id="statTotalClicks" class="text-2xl font-black text-emerald-400">0</h3>
                         </div>
-                        <div class="bg-emerald-500/10 p-4 rounded-xl border border-emerald-500/20 text-emerald-400 text-2xl"><i class="fa-solid fa-chart-simple"></i></div>
+                        <div class="bg-emerald-500/10 p-3.5 rounded-xl border border-emerald-500/20 text-emerald-400 text-xl"><i class="fa-solid fa-chart-line"></i></div>
                     </div>
+                    <div class="bg-panel border p-5 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">ঘণ্টায় ক্লিক সংখ্যা</p>
+                            <h3 id="statHourlyClicks" class="text-2xl font-black text-amber-400">0</h3>
+                        </div>
+                        <div class="bg-amber-500/10 p-3.5 rounded-xl border border-amber-500/20 text-amber-400 text-xl"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    </div>
+                    <div class="bg-panel border p-5 rounded-2xl flex items-center justify-between">
+                        <div class="max-w-[70%]">
+                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">টপ পারফর্মিং</p>
+                            <h3 id="statTopLinkCode" class="text-lg font-black text-rose-400 truncate">N/A</h3>
+                            <p id="statTopLinkClicks" class="text-[10px] text-slate-500 mt-0.5">Clicks: 0</p>
+                        </div>
+                        <div class="bg-rose-500/10 p-3.5 rounded-xl border border-rose-500/20 text-rose-400 text-xl"><i class="fa-solid fa-trophy"></i></div>
+                    </div>
+                </div>
+
+                <div class="bg-panel border rounded-2xl p-6 space-y-4">
+                    <h3 class="text-base font-bold flex items-center gap-2 brand-text-color"><i class="fa-solid fa-arrow-trend-up text-emerald-400"></i> লিংকের পারফরম্যান্স র‍্যাংকিং (লাইভ)</h3>
+                    <div class="divide-y divide-[#1e2e4a]/50" id="rankingLinksBox"></div>
                 </div>
             </div>
 
@@ -345,17 +372,32 @@
             });
         }
 
-        // 📊 লাইভ ড্যাশবোর্ড ওভারভিউ ডাটা ফিক্স ও আপডেট লজিক
+        // 📊 কাস্টমাইজড ড্যাশবোর্ড ওভারভিউ ডাটা প্রসেসিং
         function loadDashboardData() {
             database.ref('links').on('value', (snapshot) => {
                 allLinks = [];
                 let totalClicks = 0;
+                let hourlyClicksCount = 0;
+                let topLink = { code: 'N/A', clicks: -1 };
+                const oneHourAgo = Date.now() - (60 * 60 * 1000);
 
                 if (snapshot.exists()) {
                     snapshot.forEach((childSnapshot) => {
                         const data = childSnapshot.val();
                         const clicksCount = data.clicks || 0;
                         totalClicks += clicksCount;
+
+                        // ঘণ্টাভিত্তিক ক্লিক ক্যালকুলেট করার লজিক
+                        if (data.clickTimestamps) {
+                            Object.values(data.clickTimestamps).forEach(ts => {
+                                if (ts >= oneHourAgo) hourlyClicksCount++;
+                            });
+                        }
+
+                        // টপ পারফর্মিং লিংক ফাইন্ড করা
+                        if (clicksCount > topLink.clicks) {
+                            topLink = { code: childSnapshot.key, clicks: clicksCount };
+                        }
 
                         allLinks.push({
                             code: childSnapshot.key,
@@ -366,12 +408,16 @@
                     });
                 }
 
-                // ড্যাশবোর্ড ওভারভিউ সেকশনের লাইভ ডাটা কাউন্টার আপডেট
+                // ড্যাশবোর্ড ওভারভিউ সেকশনে সিরিয়াল অনুযায়ী লাইভ ভ্যালু এসাইন
                 document.getElementById('statTotalLinks').innerText = allLinks.length;
                 document.getElementById('statTotalClicks').innerText = totalClicks;
+                document.getElementById('statHourlyClicks').innerText = hourlyClicksCount;
+                document.getElementById('statTopLinkCode').innerText = topLink.code;
+                document.getElementById('statTopLinkClicks').innerText = `Clicks: ${topLink.clicks === -1 ? 0 : topLink.clicks}`;
 
                 const timeSortedLinks = [...allLinks].sort((a, b) => b.createdAt - a.createdAt);
                 renderLinksTable(timeSortedLinks);
+                renderRankingBox(allLinks);
             });
         }
 
@@ -414,10 +460,35 @@
             });
         }
 
-        /* 🔄 এডিট পপ-আপ (Auto-Highlight URL Feature Enabled) */
+        // লাইভ পারফরম্যান্স র‍্যাংকিং রেন্ডারার
+        function renderRankingBox(links) {
+            const rankingContainer = document.getElementById('rankingLinksBox');
+            rankingContainer.innerHTML = '';
+
+            if (links.length === 0) {
+                rankingContainer.innerHTML = `<p class="text-xs text-slate-500 py-2">কোনো ডাটা উপলব্ধ নেই</p>`;
+                return;
+            }
+
+            const clickSortedLinks = [...links].sort((a, b) => b.clicks - a.clicks);
+
+            let rank = 1;
+            clickSortedLinks.forEach((data) => {
+                rankingContainer.innerHTML += `
+                    <div class="flex items-center justify-between py-3 transition hover:bg-slate-500/5 px-2 rounded-xl">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="w-6 h-6 flex items-center justify-center rounded bg-[#162238] text-xs font-bold text-slate-400">${rank++}</span>
+                            <span class="font-bold text-sm text-sky-400">${data.code}</span>
+                        </div>
+                        <span class="bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded text-xs font-bold inline-flex items-center gap-1"><i class="fa-solid fa-bolt text-[10px]"></i> ${data.clicks} Clicks</span>
+                    </div>
+                `;
+            });
+        }
+
+        /* 🔄 এডিট পপ-আপ */
         function openEditModal(code, oldUrl) {
             document.getElementById('editTargetCode').value = code;
-            
             const urlInput = document.getElementById('editLongUrl');
             urlInput.value = oldUrl;
             
@@ -425,7 +496,6 @@
             modal.classList.remove('hidden');
             modal.classList.add('flex');
 
-            // ⚡ ইনপুট বক্সের টেক্সটটি অটোমেটিক সিলেক্ট বা মার্ক করে রাখার কোড
             setTimeout(() => {
                 urlInput.focus();
                 urlInput.select();
